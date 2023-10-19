@@ -1,0 +1,35 @@
+version: '3.4'
+services:
+  jmeter:
+    container_name: jmeter
+    image: "openjdk:8"
+    build: ./jmeter
+    volumes:
+      - ./jmeter:/jmeter
+    command: -n -t /jmeter/scenarios/multiScenario.jmx -l /jmeter/test-results.jtl
+#  influxdb:
+#    container_name: influxdb
+#    image: influxdb:2.6.1
+#    #    volumes:
+#    #    - influxdb-storage:/var/lib/influxdb2:rw
+#    env_file:
+#      - .env
+#    entrypoint: ["./entrypoint.sh"]
+#    #    restart: on-failure:10
+##    ports:
+##      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+#    ports:
+#      - "8086:8086"
+#    expose:
+#      - 8086
+#    restart: always
+#
+#  telegraf:
+#    container_name: telegraf
+#    image: telegraf:latest
+#    volumes:
+#      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
+#    env_file:
+#      - .env
+#    depends_on:
+#      - influxdb
