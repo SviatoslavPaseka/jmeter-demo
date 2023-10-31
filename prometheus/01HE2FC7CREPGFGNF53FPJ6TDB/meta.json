@@ -1,0 +1,17 @@
+{
+	"ulid": "01HE2FC7CREPGFGNF53FPJ6TDB",
+	"minTime": 1698732000193,
+	"maxTime": 1698739200000,
+	"stats": {
+		"numSamples": 4081748,
+		"numSeries": 9667,
+		"numChunks": 35437
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HE2FC7CREPGFGNF53FPJ6TDB"
+		]
+	},
+	"version": 1
+}

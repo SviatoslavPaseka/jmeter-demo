@@ -1,35 +1,86 @@
 version: '3.4'
+
 services:
+
   jmeter:
     container_name: jmeter
     image: "openjdk:8"
     build: ./jmeter
+#    network_mode: host
+#    cap_add:
+#      - SYS_PTRACE
+#    pid: host
+#    privileged: true
     volumes:
+#      - "/:/host:ro"
       - ./jmeter:/jmeter
     command: -n -t /jmeter/scenarios/multiScenario.jmx -l /jmeter/test-results.jtl
-#  influxdb:
-#    container_name: influxdb
-#    image: influxdb:2.6.1
-#    #    volumes:
-#    #    - influxdb-storage:/var/lib/influxdb2:rw
-#    env_file:
-#      - .env
-#    entrypoint: ["./entrypoint.sh"]
-#    #    restart: on-failure:10
-##    ports:
-##      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
-#    ports:
-#      - "8086:8086"
-#    expose:
-#      - 8086
-#    restart: always
-#
-#  telegraf:
-#    container_name: telegraf
-#    image: telegraf:latest
-#    volumes:
-#      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
-#    env_file:
-#      - .env
-#    depends_on:
-#      - influxdb
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - 9100:9100
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9091:9090
+    depends_on:
+      - cadvisor
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - 8081:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - redis
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379:6379
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-home:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+volumes:
+  grafana-home:
+

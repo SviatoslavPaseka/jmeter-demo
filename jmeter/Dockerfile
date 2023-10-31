@@ -5,11 +5,15 @@ ENV JMETER_HOME /opt/apache-jmeter-${JMETER_VERSION}
 ENV	JMETER_BIN	${JMETER_HOME}/bin
 ENV	JMETER_DOWNLOAD_URL  https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz
 
-# download and extract JMeter
-RUN mkdir /tmp/dependencies
-RUN	curl -L --silent ${JMETER_DOWNLOAD_URL} > /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz
-
-RUN tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt && \
+## download and extract JMeter
+#RUN mkdir /tmp/dependencies
+#RUN	curl -L --silent ${JMETER_DOWNLOAD_URL} > /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz
+#
+#RUN tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt && \
+#    rm -rf /tmp/dependencies
+RUN mkdir -p /tmp/dependencies && \
+    curl -L --silent -o /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz ${JMETER_DOWNLOAD_URL} && \
+    tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt && \
     rm -rf /tmp/dependencies
 
 # Set global PATH such that "jmeter" command is found
@@ -19,8 +23,8 @@ COPY plugins/lib/*.jar ${JMETER_HOME}/lib/
 COPY plugins/lib/ext/*.jar ${JMETER_HOME}/lib/ext/
 COPY jmeter.sh ${JMETER_HOME}/bin/
 
-COPY entrypoint.sh /
+COPY entrypoint1.sh /
 
 WORKDIR	${JMETER_HOME}
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint1.sh"]
